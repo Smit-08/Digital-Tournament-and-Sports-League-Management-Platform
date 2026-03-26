@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Trophy, TrendingUp, Filter, Users } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { supabase } from '../lib/supabase'
 
 const Leaderboards = () => {
@@ -32,17 +33,69 @@ const Leaderboards = () => {
     return () => channel.unsubscribe()
   }, [])
 
+  const chartData = standings.slice(0, 5).map(s => ({
+    name: s.team?.name || 'Unknown',
+    pts: s.points,
+    color: '#00d4ff'
+  }))
+
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-4xl font-bold font-rajdhani arena-text-gradient">Hall Of Fame</h2>
-          <p className="text-gray-400">Current global team and tournament rankings</p>
+          <h2 className="text-4xl font-black font-rajdhani arena-text-gradient tracking-tighter italic">HALL OF FAME</h2>
+          <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mt-1">CURRENT GLOBAL TEAM AND TOURNAMENT RANKINGS</p>
         </div>
-        <button className="p-3 glass-panel hover:bg-white/10 transition-colors flex items-center gap-3">
-          <Filter className="w-5 h-5" />
-          <span className="text-xs font-bold uppercase tracking-widest font-rajdhani">FILTER BY LEAGUE</span>
-        </button>
+        <div className="flex gap-4">
+            <button className="px-6 py-2 glass-panel hover:bg-white/10 transition-colors flex items-center gap-3 border-arena-secondary/30">
+                <Users className="w-4 h-4 text-arena-secondary" />
+                <span className="text-[10px] font-bold uppercase tracking-widest font-rajdhani">TEAMS</span>
+            </button>
+            <button className="px-6 py-2 glass-panel hover:bg-white/10 transition-colors flex items-center gap-3 border-arena-accent/30">
+                <Filter className="w-4 h-4 text-arena-accent" />
+                <span className="text-[10px] font-bold uppercase tracking-widest font-rajdhani">FILTERS</span>
+            </button>
+        </div>
+      </div>
+
+      {/* Analytical Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 glass-panel p-8 bg-gradient-to-br from-white/[0.02] to-transparent">
+              <h3 className="text-sm font-bold font-rajdhani tracking-widest uppercase mb-8 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-arena-accent" />
+                  POINTS PERFORMANCE ANALYTICS
+              </h3>
+              <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#2a2a35" vertical={false} />
+                          <XAxis dataKey="name" stroke="#555" fontSize={10} tickLine={false} axisLine={false} />
+                          <YAxis stroke="#555" fontSize={10} tickLine={false} axisLine={false} />
+                          <Tooltip 
+                              cursor={{fill: 'rgba(255,255,255,0.05)'}}
+                              contentStyle={{ backgroundColor: '#0d0d14', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                              itemStyle={{ color: '#00d4ff', fontSize: '12px', fontWeight: 'bold' }}
+                          />
+                          <Bar dataKey="pts" radius={[4, 4, 0, 0]}>
+                              {chartData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={index === 0 ? '#00d4ff' : '#8b5cf6'} fillOpacity={0.8} />
+                              ))}
+                          </Bar>
+                      </BarChart>
+                  </ResponsiveContainer>
+              </div>
+          </div>
+          
+          <div className="glass-panel p-8 flex flex-col items-center justify-center text-center relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-arena-accent/10 blur-3xl rounded-full" />
+               <Trophy className="w-16 h-16 text-yellow-500 mb-6 animate-bounce" />
+               <h4 className="text-xl font-bold font-rajdhani tracking-tighter uppercase mb-2">SEASON MVP TARGET</h4>
+               <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-6">REACH 500 PTS TO UNLOCK ELITE STATUS</p>
+               <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden mb-2">
+                   <div className="bg-arena-accent h-full w-[45%]" />
+               </div>
+               <p className="text-[10px] text-arena-accent font-bold uppercase tracking-widest">45% COMPLETION BY COMMUNITY</p>
+          </div>
       </div>
 
       <div className="glass-panel overflow-hidden">
