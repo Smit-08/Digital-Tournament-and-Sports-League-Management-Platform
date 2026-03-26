@@ -14,6 +14,7 @@ import Auth from './pages/Auth'
 import Admin from './pages/Admin'
 import TournamentDetails from './pages/TournamentDetails'
 import Dashboard from './pages/Dashboard'
+import AuctionSelection from './pages/AuctionSelection'
 import { useAnalytics } from './hooks/useAnalytics'
 
 function App() {
@@ -35,7 +36,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tournaments" element={<Tournaments />} />
         <Route path="/tournament/:id" element={<TournamentDetails />} />
-        <Route path="/auctions" element={<AuctionRoom />} />
+        <Route path="/auctions" element={<AuctionSelection />} />
         <Route path="/auctions/:id" element={<AuctionRoom />} />
         <Route path="/match/:id" element={<LiveMatch />} />
         <Route path="/leaderboards" element={<Leaderboards />} />

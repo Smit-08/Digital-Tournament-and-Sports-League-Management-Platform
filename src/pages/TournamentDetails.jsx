@@ -55,13 +55,13 @@ const TournamentDetails = () => {
 
   if (loading) {
     return (
-        <div className="min-h-screen flex items-center justify-center font-rajdhani text-2xl tracking-[0.5em] text-arena-accent animate-pulse">
+        <div className="min-h-screen flex items-center justify-center font-rajdhani text-2xl tracking-[0.5em] text-[var(--color-primary)] animate-pulse uppercase">
             PENETRATING TOURNAMENT NEURAL CORE...
         </div>
     )
   }
 
-  if (!tournament) return <div>Tournament Not Found</div>
+  if (!tournament) return <div className="p-20 text-center font-black text-[var(--color-danger)] uppercase tracking-widest">Tournament Not Found</div>
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -69,25 +69,25 @@ const TournamentDetails = () => {
       {/* Back Button */}
       <button 
           onClick={() => navigate('/tournaments')}
-          className="flex items-center gap-2 text-gray-500 hover:text-arena-accent transition-colors font-bold uppercase tracking-widest text-[10px]"
+          className="flex items-center gap-2 text-[var(--color-textMuted)] hover:text-[var(--color-primary)] transition-colors font-black uppercase tracking-widest text-[10px]"
       >
           <ChevronLeft className="w-4 h-4" />
           <span>RETURN TO ARENA LOBBY</span>
       </button>
 
       {/* Hero Section */}
-      <div className="glass-panel p-10 relative overflow-hidden group">
+      <div className="glass-panel p-10 relative overflow-hidden group border border-[var(--color-border)]">
           <div className="absolute inset-0 arena-gradient opacity-[0.03] group-hover:opacity-[0.05] transition-opacity" />
           <div className="relative z-10 flex flex-col lg:flex-row gap-10 items-center lg:items-end justify-between">
               <div className="space-y-6 text-center lg:text-left">
                   <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
-                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] italic shadow-2xl ${
-                          tournament.status === 'live' ? 'bg-red-500/10 text-red-500 border border-red-500/20 animate-pulse' :
-                          'bg-arena-accent/10 text-arena-accent border border-arena-accent/20'
+                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] italic shadow-2xl border ${
+                          tournament.status === 'live' ? 'bg-[var(--color-danger)]/10 text-[var(--color-danger)] border-[var(--color-danger)]/20 animate-pulse' :
+                          'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/20'
                       }`}>
                           {tournament.status} OPERATION
                       </span>
-                      <span className="text-gray-600 font-black font-rajdhani uppercase tracking-widest text-xs italic">
+                      <span className="text-[var(--color-textMuted)] font-black font-rajdhani uppercase tracking-widest text-xs italic opacity-50">
                            SERIAL NO: #{tournament.id.toString().padStart(4, '0')}
                       </span>
                   </div>
@@ -96,21 +96,21 @@ const TournamentDetails = () => {
                       {tournament.name}
                   </h1>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-[10px] font-black uppercase tracking-widest text-gray-500 font-rajdhani">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-[10px] font-black uppercase tracking-widest text-[var(--color-textMuted)] font-rajdhani">
                       <div className="flex items-center gap-2">
-                           <Target className="w-4 h-4 text-arena-accent" />
+                           <Target className="w-4 h-4 text-[var(--color-primary)]" />
                            <span>SPORT: {tournament.sport}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                           <MapPin className="w-4 h-4 text-arena-secondary" />
+                           <MapPin className="w-4 h-4 text-[var(--color-secondary)]" />
                            <span>VENUE: {tournament.venue || 'TBD'}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                           <Users className="w-4 h-4 text-arena-success" />
+                           <Users className="w-4 h-4 text-[var(--color-success)]" />
                            <span>ENLISTED: {tournament.max_teams} MAX</span>
                       </div>
                       <div className="flex items-center gap-2">
-                           <Layout className="w-4 h-4 text-gray-400" />
+                           <Layout className="w-4 h-4 text-[var(--color-textMuted)] opacity-60" />
                            <span>FORMAT: {tournament.format}</span>
                       </div>
                   </div>
@@ -122,16 +122,16 @@ const TournamentDetails = () => {
                         {tournament.status === 'live' && (
                             <button className="flex-1 btn-premium px-8 flex items-center justify-center gap-2 group italic animate-pulse">
                                 <Play className="w-5 h-5 fill-current" />
-                                <span>WATCH LIVE FEED</span>
+                                <span className="font-black tracking-widest text-xs">WATCH LIVE FEED</span>
                             </button>
                         )}
-                        <button className="flex-1 px-8 py-3 glass-panel hover:bg-white/10 transition-colors font-bold font-rajdhani flex items-center justify-center gap-2 uppercase tracking-widest">
+                        <button className="flex-1 px-8 py-3 glass-panel hover:bg-black/5 transition-colors font-black font-rajdhani flex items-center justify-center gap-2 uppercase tracking-widest text-xs border border-[var(--color-border)] text-[var(--color-text)]">
                             <ShieldCheck className="w-5 h-5" />
                             <span>JOIN THE FORCE</span>
                         </button>
                   </div>
                   {isOrganizer && (
-                        <button className="w-full py-4 glass-panel border-arena-accent/20 bg-arena-accent/5 hover:bg-arena-accent/10 transition-colors font-black font-rajdhani flex items-center justify-center gap-3 uppercase tracking-[0.3em] italic text-arena-accent">
+                        <button className="w-full py-4 glass-panel border-[var(--color-primary)]/20 bg-[var(--color-primary)]/5 hover:bg-[var(--color-primary)]/10 transition-colors font-black font-rajdhani flex items-center justify-center gap-3 uppercase tracking-[0.3em] italic text-[var(--color-primary)] border">
                             <Settings className="w-5 h-5" />
                             <span>INITIALIZE COMMAND</span>
                         </button>
@@ -141,15 +141,15 @@ const TournamentDetails = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex overflow-x-auto gap-4 p-1 glass-panel bg-white/[0.02] border-white/5 no-scrollbar scroll-smooth">
+      <div className="flex overflow-x-auto gap-2 p-1 glass-panel bg-black/[0.02] border-[var(--color-border)] border no-scrollbar scroll-smooth rounded-xl">
           {tabs.map((tab) => (
               <button 
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-8 py-4 text-[11px] font-black uppercase tracking-[0.4em] italic transition-all whitespace-nowrap rounded-lg ${
+                className={`px-8 py-3.5 text-[11px] font-black uppercase tracking-[0.4em] italic transition-all whitespace-nowrap rounded-lg border border-transparent ${
                     activeTab === tab 
-                    ? 'arena-gradient text-white shadow-[0_0_20px_rgba(0,212,255,0.3)]' 
-                    : 'text-gray-500 hover:text-white hover:bg-white/5'
+                    ? 'bg-[var(--color-primary)] text-white shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.3)] border-[var(--color-primary)]/50' 
+                    : 'text-[var(--color-textMuted)] hover:text-[var(--color-text)] hover:bg-black/5'
                 }`}
               >
                   {tab}

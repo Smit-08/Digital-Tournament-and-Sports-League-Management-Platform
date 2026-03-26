@@ -1,13 +1,14 @@
 import React from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Trophy, LayoutDashboard, User, LogOut, Swords, Calendar, BarChart, Settings, Gavel } from 'lucide-react'
+import { Trophy, LayoutDashboard, User, LogOut, Swords, Calendar, BarChart, Settings, Gavel, Palette } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import ThemeSelector from './ThemeSelector'
 
 const SidebarItem = ({ icon: Icon, label, path, active }) => (
   <Link 
     to={path} 
     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 group
-      ${active ? 'bg-arena-accent/20 text-arena-accent' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+      ${active ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)] shadow-[inset_0_0_10px_rgba(var(--color-primary-rgb),0.1)]' : 'text-[var(--color-textMuted)] hover:bg-white/5 hover:text-[var(--color-text)]'}`}
   >
     <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${active ? 'animate-pulse' : ''}`} />
     <span className="font-medium font-rajdhani tracking-wider text-sm">{label}</span>
@@ -18,6 +19,7 @@ const Layout = ({ children }) => {
   const { user, profile, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [isThemeOpen, setIsThemeOpen] = React.useState(false)
 
   const handleLogout = async () => {
     await signOut()
@@ -25,12 +27,14 @@ const Layout = ({ children }) => {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0a0a0f] text-white">
+    <div className="flex min-h-screen bg-[var(--color-background)] text-[var(--color-text)] transition-colors duration-500">
+      <ThemeSelector isOpen={isThemeOpen} onClose={() => setIsThemeOpen(false)} />
+      
       {/* Sidebar */}
-      <aside className="w-64 border-r border-white/5 bg-[#0d0d14] flex flex-col fixed h-full z-50">
+      <aside className="w-64 border-r border-[var(--color-border)] bg-[var(--theme-sidebarBg)] flex flex-col fixed h-full z-50 transition-colors duration-500">
         <div className="p-6">
           <Link to="/" className="flex items-center gap-2 group">
-            <Trophy className="w-8 h-8 text-arena-accent group-hover:rotate-12 transition-transform" />
+            <Trophy className="w-8 h-8 text-[var(--color-primary)] group-hover:rotate-12 transition-transform" />
             <h1 className="text-2xl font-bold font-rajdhani arena-text-gradient">Arena X</h1>
           </Link>
         </div>
@@ -44,10 +48,19 @@ const Layout = ({ children }) => {
           
           {(profile?.role === 'admin' || profile?.role === 'organizer') && (
             <>
-              <div className="pt-6 pb-2 px-4 uppercase text-[10px] font-bold text-gray-500 tracking-[0.2em]">Management</div>
+              <div className="pt-6 pb-2 px-4 uppercase text-[10px] font-bold text-[var(--color-textMuted)] tracking-[0.2em]">Management</div>
               <SidebarItem icon={Settings} label="Admin Panel" path="/admin" active={location.pathname === '/admin'} />
             </>
           )}
+
+          <div className="pt-6 pb-2 px-4 uppercase text-[10px] font-bold text-[var(--color-textMuted)] tracking-[0.2em]">Personalize</div>
+          <button 
+            onClick={() => setIsThemeOpen(true)}
+            className="flex items-center gap-3 px-4 py-3 w-full text-[var(--color-textMuted)] hover:bg-white/5 hover:text-[var(--color-text)] rounded-lg transition-all group"
+          >
+            <Palette className="w-5 h-5 group-hover:rotate-45 transition-transform" />
+            <span className="font-medium font-rajdhani tracking-wider text-sm text-left">Style Engine</span>
+          </button>
         </nav>
 
         <div className="p-4 border-t border-white/5">

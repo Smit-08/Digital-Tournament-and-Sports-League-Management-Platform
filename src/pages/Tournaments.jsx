@@ -25,20 +25,20 @@ const Tournaments = () => {
       {/* Header Area */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-4xl font-bold font-rajdhani arena-text-gradient">Tournament Arena</h2>
-          <p className="text-gray-400">Discover and join elite championships</p>
+          <h2 className="text-4xl font-bold font-rajdhani arena-text-gradient uppercase tracking-tighter">Tournament Arena</h2>
+          <p className="text-[var(--color-textMuted)]">Discover and join elite championships</p>
         </div>
         
         <div className="flex items-center gap-3">
-          <button className="p-3 glass-panel hover:bg-white/10 transition-colors">
-            <Filter className="w-5 h-5" />
+          <button className="p-3 glass-panel hover:bg-black/5 transition-colors border border-[var(--color-border)]">
+            <Filter className="w-5 h-5 text-[var(--color-textMuted)]" />
           </button>
           <button 
             onClick={handleCreateClick}
             className="btn-premium flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span>CREATE CHAMPIONSHIP</span>
+            <span className="font-bold tracking-widest text-xs">CREATE CHAMPIONSHIP</span>
           </button>
         </div>
       </div>
@@ -53,19 +53,19 @@ const Tournaments = () => {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1,2,3,4,5,6].map(i => (
-            <div key={i} className="glass-card h-72 animate-pulse" />
+            <div key={i} className="glass-card h-72 animate-pulse border border-[var(--color-border)]" />
           ))}
         </div>
       ) : error ? (
-        <div className="glass-panel p-10 text-center border-red-500/20">
-          <p className="text-red-400 font-rajdhani text-xl mb-2">OPERATIONAL ERROR</p>
-          <p className="text-gray-500">{error}</p>
+        <div className="glass-panel p-10 text-center border-[var(--color-danger)]/20">
+          <p className="text-[var(--color-danger)] font-rajdhani text-xl mb-2 uppercase tracking-widest">OPERATIONAL ERROR</p>
+          <p className="text-[var(--color-textMuted)]">{error}</p>
         </div>
       ) : tournaments.length === 0 ? (
-        <div className="glass-panel p-20 text-center">
-            <Trophy className="w-20 h-20 text-gray-700 mx-auto mb-4 opacity-50" />
-          <h3 className="text-2xl font-bold font-rajdhani text-gray-500">NO ACTIVE TOURNAMENTS</h3>
-          <p className="text-gray-600 mt-2">The arena is currently quiet. Be the first to start a legacy.</p>
+        <div className="glass-panel p-20 text-center border border-[var(--color-border)]">
+            <Trophy className="w-20 h-20 text-[var(--color-textMuted)] mx-auto mb-4 opacity-50" />
+          <h3 className="text-2xl font-bold font-rajdhani text-[var(--color-textMuted)] uppercase tracking-widest">NO ACTIVE TOURNAMENTS</h3>
+          <p className="text-[var(--color-textMuted)] mt-2">The arena is currently quiet. Be the first to start a legacy.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

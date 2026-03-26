@@ -3,14 +3,33 @@
 @tailwind utilities;
 
 :root {
-  --arena-bg: #0a0a0f;
-  --arena-surface: rgba(255, 255, 255, 0.05);
-  --arena-border: rgba(255, 255, 255, 0.1);
-  --arena-accent: #00d4ff;
-  --arena-secondary: #8b5cf6;
-  --arena-success: #10b981;
-  --arena-error: #f43f5e;
-  --arena-glass: blur(12px) saturate(180%);
+  /* Default Theme Variables (Elite Pro setup as default fallback) */
+  --color-primary: #1e3a8a; 
+  --color-secondary: #b45309;
+  --color-accent: #1e40af;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-text: #0f172a;
+  --color-textMuted: #64748b;
+  --color-border: #e2e8f0;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  --theme-radius: 0.5rem;
+  --theme-glass: none;
+  --theme-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --theme-cardBg: #ffffff;
+  --theme-sidebarBg: #1e293b;
+  --theme-sidebarText: #f8fafc;
+  --theme-navBg: rgba(255, 255, 255, 0.8);
+  --theme-buttonBg: #1e3a8a;
+  --theme-buttonText: #ffffff;
+
+  /* Arena-specific styling variables overrides */
+  --card-radius: var(--theme-radius);
+  --card-shadow: var(--theme-shadow);
+  --backdrop-blur: var(--theme-glass);
 }
 
 * {
@@ -20,136 +39,99 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: var(--arena-bg);
-  color: #fff;
-  overflow-x: hidden;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
-h1, h2, h3, h4, .font-rajdhani {
+.font-rajdhani {
   font-family: 'Rajdhani', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
-/* Glassmorphism Classes */
+/* Glass Panels with Dynamic Colors */
 .glass-panel {
-  background: var(--arena-surface);
-  backdrop-filter: var(--arena-glass);
-  border: 1px solid var(--arena-border);
-  border-radius: 1rem;
+  background-color: var(--theme-cardBg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  transition: all 0.4s ease;
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  @apply glass-panel p-6;
 }
 
-.glass-card:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: var(--arena-accent);
-  transform: translateY(-4px);
-  box-shadow: 0 10px 30px -10px rgba(0, 212, 255, 0.2);
-}
-
-/* Dynamic Gradients */
+/* Gradient Utility - using theme dynamic colors */
 .arena-gradient {
-  background: linear-gradient(135deg, var(--arena-accent), var(--arena-secondary));
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
 }
 
 .arena-text-gradient {
-  background: linear-gradient(to right, var(--arena-accent), var(--arena-secondary));
+  @apply arena-gradient;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--arena-accent);
-}
-
-/* Micro-animations */
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-.animate-shimmer {
-  position: relative;
-  overflow: hidden;
-}
-
-.animate-shimmer::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-  animation: shimmer 2s infinite;
-}
-
+/* Premium Buttons Styling Overrides */
 .btn-premium {
-  @apply relative overflow-hidden transition-all duration-300 active:scale-95;
-  background: linear-gradient(135deg, var(--arena-accent), var(--arena-secondary));
-  padding: 0.6rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  color: white;
+  @apply font-rajdhani font-bold px-6 py-3 rounded-md tracking-[0.2em] transition-all;
+  background-color: var(--theme-buttonBg);
+  color: var(--theme-buttonText);
+  border-radius: var(--card-radius);
+  box-shadow: 0 4px 14px 0 rgba(var(--color-primary-rgb, 0,0,0), 0.39);
 }
 
 .btn-premium:hover {
-  filter: brightness(1.1) saturate(1.2);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+  @apply scale-[1.02] shadow-xl brightness-110;
 }
 
-.input-field {
-  @apply w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-arena-accent font-rajdhani transition-all text-white placeholder-gray-500;
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-select.input-field {
-  @apply appearance-none cursor-pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='C19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 1em;
+::-webkit-scrollbar-track {
+  background: var(--color-background);
 }
 
-input[type="date"].input-field::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  cursor: pointer;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.02);
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--arena-accent);
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
   border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 10px;
+}
+
+/* Keyframe Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideInFromLeft { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideInFromBottom { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.animate-fadeIn { animation: fadeIn 0.5s ease-out forwards; }
+.animate-slideInLeft { animation: slideInFromLeft 0.5s ease-out forwards; }
+.animate-slideInBottom { animation: slideInFromBottom 0.5s ease-out forwards; }
+.animate-scaleIn { animation: scaleIn 0.3s ease-out forwards; }
+
+/* Dynamic Layout Coloring Hooks */
+.sidebar-bg { background-color: var(--theme-sidebarBg); }
+.nav-bg { background-color: var(--theme-navBg); }
+
+/* Theme Specific Rule: Cyber Arena Glowy Borders */
+[data-theme="cyber-arena"] .glass-panel {
+    border-color: rgba(0, 212, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.05);
+}
+
+/* Theme Specific Rule: Minimal Glass Border Softness */
+[data-theme="minimal-glass"] .glass-panel {
+    border: 1px solid rgba(255, 255, 255, 0.4);
 }
