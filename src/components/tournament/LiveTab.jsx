@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Play, Activity, Target, Users, Layout, Shield, TrendingUp, ArrowRight, MessageSquare, Send } from 'lucide-react'
+import { Play, Activity, Target, Users, Layout, Shield, TrendingUp, ArrowRight, MessageSquare, Send, Clock } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
 const LiveTab = ({ tournamentId }) => {
@@ -7,20 +7,85 @@ const LiveTab = ({ tournamentId }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const isGlobal = typeof tournamentId === 'string' && (tournamentId.startsWith('foot-') || tournamentId.startsWith('bask-') || tournamentId.startsWith('cricket-') || tournamentId.startsWith('ipl-'))
+    
     fetchLiveMatches()
-    const channel = supabase
-      .channel('live_matches_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches', filter: `tournament_id=eq.${tournamentId}` }, () => {
-        fetchLiveMatches()
-      })
-      .subscribe()
 
-    return () => channel.unsubscribe()
+    if (isGlobal) {
+      // Polling for global data since there's no real-time stream for free tier APIs
+      const interval = setInterval(fetchLiveMatches, 60000)
+      return () => clearInterval(interval)
+    } else {
+      const channel = supabase
+        .channel(`live_matches_${tournamentId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'matches', filter: `tournament_id=eq.${tournamentId}` }, () => {
+          fetchLiveMatches()
+        })
+        .subscribe()
+
+      return () => channel.unsubscribe()
+    }
   }, [tournamentId])
 
   const fetchLiveMatches = async () => {
     try {
       setLoading(true)
+      const apiKey = import.meta.env.VITE_SPORTS_API_KEY
+      
+      // Global Football/Basketball
+      if (typeof tournamentId === 'string' && (tournamentId.startsWith('foot-') || tournamentId.startsWith('bask-'))) {
+          const type = tournamentId.startsWith('foot-') ? 'football' : 'basketball'
+          const leagueId = tournamentId.split('-')[1]
+          const host = type === 'football' ? 'v3.football.api-sports.io' : 'v1.basketball.api-sports.io'
+          const endpoint = `https://${host}/fixtures?live=all&league=${leagueId}`
+          
+          if (!apiKey) {
+            setLiveMatches([])
+            return
+          }
+
+          const res = await fetch(endpoint, {
+              headers: { 'x-apisports-key': apiKey, 'x-rapidapi-host': host }
+          })
+          const data = await res.json()
+          
+          if (data.response) {
+              const mapped = data.response.map(m => ({
+                  id: m.fixture?.id || m.id,
+                  status: 'live',
+                  match_time: m.fixture?.status?.elapsed || '0',
+                  team1: { name: m.teams.home.name, logo: m.teams.home.logo },
+                  team2: { name: m.teams.away.name, logo: m.teams.away.logo },
+                  score1: m.goals?.home ?? m.scores?.home?.total ?? 0,
+                  score2: m.goals?.away ?? m.scores?.away?.total ?? 0,
+                  commentary: []
+              }))
+              setLiveMatches(mapped)
+          }
+          return
+      }
+
+      // IPL / Global Cricket 
+      if (typeof tournamentId === 'string' && (tournamentId.startsWith('cricket-') || tournamentId === 'ipl-2026-global')) {
+         // Mapping to a mock live state for IPL since we are integrating it for tomorrow
+         if (tournamentId === 'ipl-2026-global') {
+            setLiveMatches([{
+                id: 'ipl-opener',
+                status: 'upcoming',
+                match_time: 'Starts Tomorrow',
+                team1: { name: 'CSK', logo: 'https://www.thesportsdb.com/images/media/team/badge/vuyvpx1421431652.png' },
+                team2: { name: 'RCB', logo: 'https://www.thesportsdb.com/images/media/team/badge/vruxxr1421431872.png' },
+                score1: 0,
+                score2: 0,
+                commentary: [{ id: 1, event_time: '19:30', commentary: 'The Arena is being prepared for the 2026 Season Opener.', is_important: true }]
+            }])
+         } else {
+            setLiveMatches([])
+         }
+         return
+      }
+
+      // Local Matches
       const { data, error } = await supabase
         .from('matches')
         .select(`
@@ -52,65 +117,110 @@ const LiveTab = ({ tournamentId }) => {
     </div>
   )
 
-  const activeMatch = liveMatches[0]
+  const [selectedMatchIdx, setSelectedMatchIdx] = useState(0)
+
+  if (loading) return <div className="p-20 text-center animate-pulse text-[var(--color-primary)] font-rajdhani text-xl tracking-widest uppercase italic">TUNING INTO LIVE NEURAL FEED...</div>
+
+  if (liveMatches.length === 0) return (
+    <div className="glass-panel p-20 text-center border-dashed border-white/10 opacity-60">
+        <Play className="w-16 h-16 text-gray-700 mx-auto mb-4 opacity-50" />
+        <h4 className="text-xl font-bold font-rajdhani text-gray-500 uppercase italic">NO ACTIVE OPERATIONS</h4>
+        <p className="text-gray-600 mt-2 font-rajdhani text-sm uppercase tracking-widest italic leading-relaxed">The battlefield is currently silent. Check the schedule for upcoming engagements.</p>
+    </div>
+  )
+
+  const activeMatch = liveMatches[selectedMatchIdx] || liveMatches[0]
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 animate-fadeIn">
       {/* Main Broadcaster Area */}
       <div className="lg:col-span-3 space-y-6">
-          <div className="glass-panel relative aspect-video overflow-hidden group">
+          {/* Multiple Match Selector if applicable */}
+          {liveMatches.length > 1 && (
+              <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+                  {liveMatches.map((m, i) => (
+                      <button 
+                        key={m.id}
+                        onClick={() => setSelectedMatchIdx(i)}
+                        className={`px-4 py-2 rounded-lg font-rajdhani font-bold text-[10px] tracking-widest uppercase transition-all border
+                          ${selectedMatchIdx === i ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' : 'glass-panel text-gray-500 border-white/5'}`}
+                      >
+                          CAM_{i + 1}: {m.team1?.name} VS {m.team2?.name}
+                      </button>
+                  ))}
+              </div>
+          )}
+
+          <div className="glass-panel relative aspect-video overflow-hidden group border border-white/5">
                 <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center p-10 text-center">
                     <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-6 animate-pulse border border-red-500/30">
                         <Play className="w-10 h-10 text-red-500 fill-current" />
                     </div>
-                    <h3 className="text-4xl font-black font-rajdhani text-white uppercase italic tracking-tighter leading-none italic mb-4">TACTICAL BROADCAST <br/>IN PROGRESS</h3>
-                    <div className="flex items-center gap-4 text-xs font-bold font-rajdhani tracking-widest uppercase text-gray-400">
-                         <span>STRIKER_CAM_01</span>
-                         <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                    <h3 className="text-4xl font-black font-rajdhani text-white uppercase italic tracking-tighter leading-none mb-4">TACTICAL BROADCASTER <br/>ACTIVE</h3>
+                    <div className="flex items-center gap-4 text-xs font-bold font-rajdhani tracking-widest uppercase text-gray-500">
+                         <span className="text-[var(--color-primary)]">SATELLITE_LINK_0{selectedMatchIdx + 1}</span>
+                         <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_red]" />
                          <span className="text-red-500 font-black animate-pulse">LIVE REPLAY</span>
-                         <span className="w-1.5 h-1.5 rounded-full bg-gray-700" />
-                         <span>BITRATE: 42.8 MB/S</span>
+                         <span className="w-1.5 h-1.5 rounded-full bg-gray-800" />
+                         <span className="opacity-50 tracking-tighter italic">V_LATENCY: 4.2ms</span>
                     </div>
                 </div>
+
                 {/* Score HUD Overlay */}
-                <div className="absolute bottom-6 left-6 right-6 glass-panel p-6 border-white/10 bg-black/60 backdrop-blur-md flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-4">
-                             <span className="text-3xl font-black font-rajdhani text-white tracking-widest italic">{activeMatch.team1?.name}</span>
-                             <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-2">
-                                <Shield className="w-6 h-6 text-arena-accent opacity-50" />
-                            </div>
+                <div className="absolute bottom-6 left-6 right-6 glass-panel p-6 border-white/10 bg-black/60 backdrop-blur-md flex items-center justify-between shadow-2xl">
+                    <div className="flex items-center gap-8">
+                        <div className="flex flex-col items-end">
+                             <div className="flex items-center gap-3">
+                                 <span className="text-3xl font-black font-rajdhani text-white tracking-widest italic">{activeMatch.team1?.name}</span>
+                                 <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-2 overflow-hidden">
+                                    {activeMatch.team1?.logo ? <img src={activeMatch.team1.logo} alt="" className="w-full h-full object-contain" /> : <Shield className="w-6 h-6 text-arena-accent opacity-50" />}
+                                </div>
+                             </div>
                         </div>
-                        <div className="px-6 py-2 bg-red-500/10 border border-red-500/30 text-red-500 text-6xl font-black font-rajdhani tracking-tighter italic">
-                             124 - 108
+
+                        <div className="px-6 py-2 bg-black/60 border border-white/5 rounded-xl shadow-inner">
+                            <span className="text-6xl font-black font-rajdhani arena-text-gradient tracking-tighter italic">
+                                {activeMatch.score1 ?? 0} - {activeMatch.score2 ?? 0}
+                            </span>
                         </div>
-                        <div className="flex items-center gap-4">
-                             <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-2">
-                                <Shield className="w-6 h-6 text-arena-secondary opacity-50" />
+
+                        <div className="flex items-center gap-3">
+                             <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-2 overflow-hidden">
+                                {activeMatch.team2?.logo ? <img src={activeMatch.team2.logo} alt="" className="w-full h-full object-contain" /> : <Shield className="w-6 h-6 text-arena-secondary opacity-50" />}
                             </div>
                             <span className="text-3xl font-black font-rajdhani text-white tracking-widest italic">{activeMatch.team2?.name}</span>
                         </div>
                     </div>
                     <div className="text-right">
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest italic italic">TIME REMAINING</p>
-                        <p className="text-2xl font-black font-rajdhani text-white uppercase italic tracking-tighter">14:42</p>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest italic">ELAPSED_TIME</p>
+                        <p className="text-2xl font-black font-rajdhani text-white uppercase italic tracking-tighter flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-red-500" />
+                            {activeMatch.match_time || "LIVE"}
+                        </p>
                     </div>
                 </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="glass-panel p-6 bg-white/[0.01]">
-                   <h4 className="text-xs font-black text-gray-500 tracking-[0.5em] mb-6 uppercase flex items-center gap-2 italic italic">
+              <div className="glass-panel p-8 bg-white/[0.01]">
+                   <h4 className="text-xs font-black text-gray-500 tracking-[0.5em] mb-6 uppercase flex items-center gap-2 italic">
                         <Activity className="w-4 h-4 text-arena-accent" />
                         EVENT TIMELINE
                     </h4>
                     <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar italic font-rajdhani font-medium tracking-tight">
-                        {activeMatch.commentary?.map(event => (
-                            <div key={event.id} className={`flex gap-4 p-3 border-l-2 ${event.is_important ? 'border-arena-success bg-arena-success/5' : 'border-white/5 bg-white/5'}`}>
-                                <span className="text-[10px] font-black text-gray-500 italic mt-0.5">{event.event_time}</span>
-                                <p className="text-sm text-gray-200">{event.commentary}</p>
+                        {activeMatch.commentary && activeMatch.commentary.length > 0 ? (
+                            activeMatch.commentary.map(event => (
+                                <div key={event.id} className={`flex gap-4 p-4 border-l-2 transition-all ${event.is_important ? 'border-arena-success bg-arena-success/5 shadow-[inset_2px_0_10px_rgba(0,255,157,0.05)]' : 'border-white/5 bg-white/2 hover:bg-white/5'}`}>
+                                    <span className="text-[10px] font-black text-gray-500 italic mt-0.5">{event.event_time}</span>
+                                    <p className="text-sm text-gray-200">{event.commentary}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="p-10 text-center opacity-20 border-2 border-dashed border-white/5 rounded-xl">
+                                <TrendingUp className="w-8 h-8 mx-auto mb-2" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest">Awaiting tactical data...</span>
                             </div>
-                        ))}
+                        )}
                     </div>
               </div>
               <div className="glass-panel p-6 bg-white/[0.01]">

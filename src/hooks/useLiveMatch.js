@@ -11,6 +11,32 @@ export const useLiveMatch = (matchId) => {
     if (!matchId) return
 
     const fetchData = async () => {
+      // Handle Global IDs
+      if (typeof matchId === 'string' && matchId.startsWith('match-')) {
+        if (matchId.includes('ipl')) {
+           setMatch({
+             id: matchId,
+             team1: { name: 'Chennai Super Kings' },
+             team2: { name: 'Royal Challengers Bengaluru' },
+             sport: 'Cricket',
+             status: 'live',
+             tournament: { name: 'IPL 2026 Season', sport: 'Cricket' },
+             isGlobal: true,
+             match_time: '2026-03-28'
+           })
+           setScores([
+             { team_id: 't1', points: 164 },
+             { team_id: 't2', points: 142 }
+           ])
+           setCommentary([
+             { id: 101, event_time: '16.4 Ov', commentary: 'Dube hits it over long-on! SIX!', is_important: true },
+             { id: 102, event_time: '16.3 Ov', commentary: 'Single to long-off.', is_important: false }
+           ])
+        }
+        setLoading(false)
+        return
+      }
+
       // 1. Fetch match details with team names
       const { data: matchData } = await supabase
         .from('matches')
@@ -18,7 +44,8 @@ export const useLiveMatch = (matchId) => {
           *,
           team1:teams!matches_team1_id_fkey(name, logo),
           team2:teams!matches_team2_id_fkey(name, logo),
-          venue:venues(name)
+          venue:venues(name),
+          tournament:tournaments(name, sport)
         `)
         .eq('id', matchId)
         .single()
@@ -46,42 +73,52 @@ export const useLiveMatch = (matchId) => {
 
     fetchData()
 
-    // 4. Real-time Subscriptions
-    const scoreChannel = supabase
-      .channel(`match_${matchId}_scores`)
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'scores',
-        filter: `match_id=eq.${matchId}`
-      }, (payload) => {
-        setScores(prev => {
-            const idx = prev.findIndex(s => s.id === payload.new.id)
-            if (idx > -1) {
-                const updated = [...prev]
-                updated[idx] = payload.new
-                return updated
-            }
-            return [...prev, payload.new]
+    // 4. Real-time Subscriptions (ONLY FOR LOCAL)
+    if (typeof matchId !== 'string' || !matchId.startsWith('match-')) {
+      const scoreChannel = supabase
+        .channel(`match_${matchId}_scores`)
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'scores',
+          filter: `match_id=eq.${matchId}`
+        }, (payload) => {
+          setScores(prev => {
+              const idx = prev.findIndex(s => s.id === payload.new.id)
+              if (idx > -1) {
+                  const updated = [...prev]
+                  updated[idx] = payload.new
+                  return updated
+              }
+              return [...prev, payload.new]
+          })
         })
-      })
-      .subscribe()
+        .subscribe()
 
-    const commChannel = supabase
-      .channel(`match_${matchId}_commentary`)
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'match_commentary',
-        filter: `match_id=eq.${matchId}`
-      }, (payload) => {
-        setCommentary(prev => [payload.new, ...prev])
-      })
-      .subscribe()
+      const commChannel = supabase
+        .channel(`match_${matchId}_commentary`)
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'match_commentary',
+          filter: `match_id=eq.${matchId}`
+        }, (payload) => {
+          setCommentary(prev => {
+              const idx = prev.findIndex(c => c.id === payload.new.id)
+              if (idx > -1) {
+                  const updated = [...prev]
+                  updated[idx] = payload.new
+                  return updated
+              }
+              return [payload.new, ...prev]
+          })
+        })
+        .subscribe()
 
-    return () => {
+      return () => {
         scoreChannel.unsubscribe()
         commChannel.unsubscribe()
+      }
     }
   }, [matchId])
 

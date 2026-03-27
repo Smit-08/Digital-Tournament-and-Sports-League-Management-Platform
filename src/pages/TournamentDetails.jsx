@@ -36,6 +36,89 @@ const TournamentDetails = () => {
   const fetchTournament = async () => {
     try {
       setLoading(true)
+      
+      // Check if it's a global tournament
+      if (id.startsWith('foot-') || id.startsWith('bask-') || id.startsWith('cricket-') || id.startsWith('esports-') || id.startsWith('ipl-')) {
+        let globalData = null;
+        const apiKey = import.meta.env.VITE_SPORTS_API_KEY;
+        
+        // Handle IP-2026 Injection
+        if (id === 'ipl-2026-global') {
+          globalData = {
+            id: 'ipl-2026-global',
+            name: 'IPL 2026 Season',
+            sport: 'CRICKET',
+            status: 'upcoming',
+            isGlobal: true,
+            max_teams: 10,
+            format: 'League',
+            venue: 'Multiple Venues (India)',
+            created_by: 'system',
+            logo: 'https://www.thesportsdb.com/images/media/league/logo/7v3v231557053538.png'
+          };
+        } else if (id.startsWith('cricket-')) {
+          const leagueId = id.split('-')[1];
+          const res = await fetch(`https://www.thesportsdb.com/api/v1/json/3/lookupleague.php?id=${leagueId}`);
+          const data = await res.json();
+          if (data.leagues && data.leagues[0]) {
+            const l = data.leagues[0];
+            globalData = {
+              id, name: l.strLeague, sport: 'CRICKET', status: 'live',
+              isGlobal: true, max_teams: 10, format: 'Tournament',
+              venue: l.strCountry, created_by: 'system', logo: l.strLogo
+            };
+          }
+        } else if (id.startsWith('foot-') || id.startsWith('bask-')) {
+            if (!apiKey) throw new Error("API-SPORTS link required for global data.");
+            const sportType = id.startsWith('foot-') ? 'football' : 'basketball';
+            const leagueId = id.split('-')[1];
+            const host = sportType === 'football' ? 'v3.football.api-sports.io' : 'v1.basketball.api-sports.io';
+            const endpoint = `https://${host}/leagues?id=${leagueId}`;
+            
+            const res = await fetch(endpoint, {
+                headers: { 'x-apisports-key': apiKey, 'x-rapidapi-host': host }
+            });
+            const data = await res.json();
+            
+            if (data.response && data.response[0]) {
+                const item = data.response[0];
+                const league = item.league || item;
+                globalData = {
+                    id, 
+                    name: league.name, 
+                    sport: sportType.toUpperCase(),
+                    status: 'ongoing',
+                    isGlobal: true, 
+                    max_teams: 20, 
+                    format: 'League',
+                    venue: item.country?.name || 'Global', 
+                    created_by: 'system', 
+                    logo: league.logo || league.image
+                };
+            }
+        } else if (id.startsWith('esports-')) {
+          const pandaKey = import.meta.env.VITE_ESPORTS_API_KEY;
+          const leagueId = id.split('-')[1];
+          if (pandaKey) {
+            const res = await fetch(`https://api.pandascore.co/leagues/${leagueId}`, {
+                headers: { 'Authorization': `Bearer ${pandaKey}` }
+            });
+            const data = await res.json();
+            globalData = {
+              id, name: data.name, sport: 'ESPORTS', status: 'live',
+              isGlobal: true, max_teams: 16, format: 'Championship',
+              venue: 'Global Digital Arena', created_by: 'system', logo: data.image_url
+            };
+          }
+        }
+
+        if (globalData) {
+          setTournament(globalData);
+          return;
+        }
+      }
+
+      // Default to Supabase for numeric IDs
       const { data, error } = await supabase
         .from('tournaments')
         .select('*')
@@ -45,9 +128,7 @@ const TournamentDetails = () => {
       if (error) throw error
       setTournament(data)
     } catch (err) {
-      console.error(err)
-      // If error, redirect back to tournaments
-      // navigate('/tournaments')
+      console.error("Fetch Match Failed:", err)
     } finally {
       setLoading(false)
     }

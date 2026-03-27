@@ -15,6 +15,8 @@ import Admin from './pages/Admin'
 import TournamentDetails from './pages/TournamentDetails'
 import Dashboard from './pages/Dashboard'
 import AuctionSelection from './pages/AuctionSelection'
+import GlobalHub from './pages/GlobalHub'
+import RealtimeCenter from './pages/RealtimeCenter'
 import { useAnalytics } from './hooks/useAnalytics'
 
 function App() {
@@ -41,6 +43,8 @@ function App() {
         <Route path="/match/:id" element={<LiveMatch />} />
         <Route path="/leaderboards" element={<Leaderboards />} />
         <Route path="/schedules" element={<Schedules />} />
+        <Route path="/global-hub" element={<GlobalHub />} />
+        <Route path="/realtime" element={<RealtimeCenter />} />
         <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
         <Route path="/admin" element={user ? <Admin /> : <Navigate to="/login" replace />} />
         <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />

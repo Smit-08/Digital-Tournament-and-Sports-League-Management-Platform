@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus, Gavel, Calendar, MapPin, Users, HelpCircle, ShieldCheck, Play, ArrowRight, Target, Activity } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
 const ScheduleTab = ({ tournamentId }) => {
+  const navigate = useNavigate()
   const [matches, setMatches] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -21,6 +23,26 @@ const ScheduleTab = ({ tournamentId }) => {
   const fetchMatches = async () => {
     try {
       setLoading(true)
+      
+      // Handle Global IDs
+      if (typeof tournamentId === 'string' && (tournamentId.startsWith('global-') || tournamentId.startsWith('cricket-') || tournamentId.startsWith('ipl-'))) {
+        if (tournamentId.includes('ipl')) {
+           // Inject IPL Opening Match
+           setMatches([{
+             id: 'match-ipl-1',
+             match_time: '2026-03-28T19:30:00Z',
+             status: 'scheduled',
+             team1: { name: 'Chennai Super Kings' },
+             team2: { name: 'Royal Challengers Bengaluru' },
+             venue: { name: 'M. A. Chidambaram Stadium' }
+           }]);
+        } else {
+           // For other global ones, show a single placeholder or fetch from TheSportsDB
+           setMatches([]);
+        }
+        return;
+      }
+
       const { data, error } = await supabase
         .from('matches')
         .select('*, team1:teams!matches_team1_id_fkey(name, logo), team2:teams!matches_team2_id_fkey(name, logo), venue:venues(name)')
@@ -118,7 +140,10 @@ const ScheduleTab = ({ tournamentId }) => {
                             <MapPin className="w-3 h-3 shrink-0" />
                             <span>{match.venue?.name || match.referee_name || "CENTRAL STADIUM"}</span>
                         </div>
-                        <button className="w-full py-3 glass-panel hover:bg-white/10 transition-colors text-[10px] font-black tracking-[0.2em] uppercase italic flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => navigate(`/live/${match.id}`)}
+                          className="w-full py-3 glass-panel hover:bg-white/10 transition-colors text-[10px] font-black tracking-[0.2em] uppercase italic flex items-center justify-center gap-2"
+                        >
                              INITIALIZE LINK <ArrowRight className="w-3 h-3" />
                         </button>
                     </div>

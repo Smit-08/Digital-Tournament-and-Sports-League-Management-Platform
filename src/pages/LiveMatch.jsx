@@ -1,14 +1,20 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import { Play, MapPin, Users, Timer, Activity, MessageSquare } from 'lucide-react'
+import { Play, MapPin, Users, Timer, Activity, MessageSquare, Trophy, Globe } from 'lucide-react'
 import { useLiveMatch } from '../hooks/useLiveMatch'
+import { useCricketLive } from '../hooks/useCricketLive'
+import CricketScoreBoard from '../components/CricketScoreBoard'
 
 const LiveMatch = () => {
   const { id } = useParams()
-  const { match, scores, commentary, loading } = useLiveMatch(id)
+  const { match, scores, commentary, loading: baseLoading } = useLiveMatch(id)
+  const isCricket = match?.tournament?.sport?.toLowerCase() === 'cricket'
+  const { liveInfo, loading: cricketLoading } = useCricketLive(id, match?.isGlobal || match?.tournament?.name?.includes('IPL'), isCricket)
+
+  const loading = baseLoading || (isCricket && cricketLoading)
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center font-rajdhani text-arena-accent text-2xl animate-pulse">
+    <div className="min-h-screen flex items-center justify-center font-rajdhani text-[var(--color-primary)] text-2xl animate-pulse">
         CONNECTING TO LIVE STREAM...
     </div>
   )
@@ -17,47 +23,72 @@ const LiveMatch = () => {
 
   return (
     <div className="space-y-8 pb-20">
-      {/* Dynamic Scoreboard */}
-      <div className="glass-panel p-10 relative overflow-hidden bg-gradient-to-br from-white/[0.03] to-transparent">
-        <div className="absolute inset-0 arena-gradient opacity-[0.02]" />
-        
-        <div className="flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
-          <div className="text-center md:text-left flex-1">
-            <div className="w-24 h-24 mb-4 mx-auto md:mx-0 glass-card rounded-full p-4 arena-gradient flex items-center justify-center text-3xl font-bold font-rajdhani">
-                {match.team1?.name?.charAt(0)}
+      {/* Dynamic Header */}
+      <div className="flex items-center justify-between mb-2">
+         <div className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-[var(--color-primary)]" />
+            <h2 className="text-sm font-bold font-rajdhani text-[var(--color-textMuted)] uppercase tracking-[0.3em]">
+               {match.tournament?.name || 'ARENA X ELITE SERIES'}
+            </h2>
+         </div>
+         <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1 bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 rounded text-[9px] font-black text-[var(--color-primary)] uppercase tracking-widest italic animate-pulse">
+                <Globe className="w-3 h-3" />
+                BROADCAST LIVE
             </div>
-            <h3 className="text-3xl font-bold font-rajdhani uppercase tracking-tighter">{match.team1?.name}</h3>
-            <p className="text-arena-accent font-bold mt-2">HOME TEAM</p>
-          </div>
+            <div className="flex items-center gap-2 text-xs font-bold text-[var(--color-textMuted)] uppercase tracking-widest">
+                <Users className="w-3.5 h-3.5" />
+                1,284
+            </div>
+         </div>
+      </div>
 
-          <div className="text-center flex flex-col items-center gap-2">
-            <div className="flex items-center gap-6 mb-2">
-              <span className="text-7xl font-bold font-rajdhani arena-text-gradient">
-                {scores.find(s => s.team_id === match.team1_id)?.points || 0}
-              </span>
-              <span className="text-4xl text-gray-700 font-rajdhani">VS</span>
-              <span className="text-7xl font-bold font-rajdhani arena-text-gradient">
-                {scores.find(s => s.team_id === match.team2_id)?.points || 0}
-              </span>
+      {isCricket ? (
+        <CricketScoreBoard liveInfo={liveInfo} loading={cricketLoading} />
+      ) : (
+        /* Legacy Dynamic Scoreboard for other sports */
+        <div className="glass-panel p-10 relative overflow-hidden bg-gradient-to-br from-white/[0.03] to-transparent">
+          <div className="absolute inset-0 arena-gradient opacity-[0.02]" />
+          
+          <div className="flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
+            <div className="text-center md:text-left flex-1">
+              <div className="w-24 h-24 mb-4 mx-auto md:mx-0 glass-card rounded-full p-4 arena-gradient flex items-center justify-center text-3xl font-bold font-rajdhani">
+                  {match.team1?.name?.charAt(0)}
+              </div>
+              <h3 className="text-3xl font-bold font-rajdhani uppercase tracking-tighter">{match.team1?.name}</h3>
+              <p className="text-[var(--color-primary)] font-bold mt-2 uppercase tracking-widest text-[10px]">HOME TEAM</p>
             </div>
-            <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2
-              ${match.status === 'live' ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-white/5 text-gray-400'}`}>
-              {match.status === 'live' && <div className="w-1.5 h-1.5 rounded-full bg-red-500" />}
-              {match.status}
-            </div>
-            <p className="text-sm text-gray-500 font-medium flex items-center gap-2 mt-2">
-                <Timer className="w-4 h-4" /> 2nd HALF (65:12)
-            </p>
-          </div>
 
-          <div className="text-center md:text-right flex-1">
-            <div className="w-24 h-24 mb-4 mx-auto md:ml-auto glass-card rounded-full p-4 bg-white/5 border border-white/5 flex items-center justify-center text-3xl font-bold font-rajdhani">
-                {match.team2?.name?.charAt(0)}
+            <div className="text-center flex flex-col items-center gap-2">
+              <div className="flex items-center gap-6 mb-2">
+                <span className="text-7xl font-bold font-rajdhani arena-text-gradient">
+                  {scores.find(s => s.team_id === match.team1_id)?.points || 0}
+                </span>
+                <span className="text-4xl text-[var(--color-border)] font-rajdhani">VS</span>
+                <span className="text-7xl font-bold font-rajdhani arena-text-gradient">
+                  {scores.find(s => s.team_id === match.team2_id)?.points || 0}
+                </span>
+              </div>
+              <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2
+                ${match.status === 'live' ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-white/5 text-[var(--color-textMuted)]'}`}>
+                {match.status === 'live' && <div className="w-1.5 h-1.5 rounded-full bg-red-500" />}
+                {match.status}
+              </div>
+              <p className="text-sm text-[var(--color-textMuted)] font-medium flex items-center gap-2 mt-2">
+                  <Timer className="w-4 h-4" /> 2nd HALF (65:12)
+              </p>
             </div>
-            <h3 className="text-3xl font-bold font-rajdhani uppercase tracking-tighter">{match.team2?.name}</h3>
-            <p className="text-gray-500 font-bold mt-2">AWAY TEAM</p>
+
+            <div className="text-center md:text-right flex-1">
+              <div className="w-24 h-24 mb-4 mx-auto md:ml-auto glass-card rounded-full p-4 bg-white/5 border border-white/5 flex items-center justify-center text-3xl font-bold font-rajdhani">
+                  {match.team2?.name?.charAt(0)}
+              </div>
+              <h3 className="text-3xl font-bold font-rajdhani uppercase tracking-tighter">{match.team2?.name}</h3>
+              <p className="text-[var(--color-textMuted)] font-bold mt-2 uppercase tracking-widest text-[10px]">AWAY TEAM</p>
+            </div>
           </div>
         </div>
+      )}
         
         <div className="mt-10 pt-6 border-t border-white/5 flex gap-10 justify-center">
             <div className="flex items-center gap-2 text-gray-500 text-sm">
@@ -69,7 +100,6 @@ const LiveMatch = () => {
                 <span>TOURNAMENT QUARTERFINALS</span>
             </div>
         </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Live Commentary Feed */}

@@ -3,30 +3,32 @@
 @tailwind utilities;
 
 :root {
-  /* Default Theme Variables (Elite Pro setup as default fallback) */
-  --color-primary: #1e3a8a; 
-  --color-secondary: #b45309;
-  --color-accent: #1e40af;
-  --color-background: #f8fafc;
-  --color-surface: #ffffff;
-  --color-text: #0f172a;
-  --color-textMuted: #64748b;
-  --color-border: #e2e8f0;
+  /* Default Theme Variables (Arena Pro Dark) */
+  --color-primary: #00d4ff; 
+  --color-primary-rgb: 0, 212, 255;
+  --color-secondary: #f59e0b;
+  --color-secondary-rgb: 245, 158, 11;
+  --color-accent: #00d4ff;
+  --color-background: #0d0d12;
+  --color-surface: #16161f;
+  --color-text: #f8fafc;
+  --color-textMuted: #94a3b8;
+  --color-border: rgba(255, 255, 255, 0.08);
   --color-success: #10b981;
+  --color-success-rgb: 16, 185, 129;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
 
-  --theme-radius: 0.5rem;
-  --theme-glass: none;
-  --theme-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --theme-cardBg: #ffffff;
-  --theme-sidebarBg: #1e293b;
+  --theme-radius: 1rem;
+  --theme-glass: blur(12px);
+  --theme-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
+  --theme-cardBg: rgba(22, 22, 31, 0.8);
+  --theme-sidebarBg: #0d0d12;
   --theme-sidebarText: #f8fafc;
-  --theme-navBg: rgba(255, 255, 255, 0.8);
-  --theme-buttonBg: #1e3a8a;
-  --theme-buttonText: #ffffff;
+  --theme-navBg: rgba(13, 13, 18, 0.8);
+  --theme-buttonBg: var(--color-primary);
+  --theme-buttonText: #0d0d12;
 
-  /* Arena-specific styling variables overrides */
   --card-radius: var(--theme-radius);
   --card-shadow: var(--theme-shadow);
   --backdrop-blur: var(--theme-glass);
@@ -66,29 +68,43 @@ body {
   @apply glass-panel p-6;
 }
 
-/* Gradient Utility - using theme dynamic colors */
+/* Premium Inputs */
+.input-field {
+    @apply w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-sm font-rajdhani font-medium outline-none transition-all;
+    color: var(--color-text);
+}
+
+.input-field:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 15px rgba(var(--color-primary-rgb), 0.15);
+}
+
+.input-field option {
+    @apply bg-[#16161f] text-white;
+}
+
+/* Gradient Utility */
 .arena-gradient {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
 }
 
 .arena-text-gradient {
-  @apply arena-gradient;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* Premium Buttons Styling Overrides */
+/* Premium Buttons */
 .btn-premium {
-  @apply font-rajdhani font-bold px-6 py-3 rounded-md tracking-[0.2em] transition-all;
+  @apply font-rajdhani font-black px-6 py-3 rounded-xl tracking-[0.2em] transition-all uppercase italic;
   background-color: var(--theme-buttonBg);
   color: var(--theme-buttonText);
-  border-radius: var(--card-radius);
-  box-shadow: 0 4px 14px 0 rgba(var(--color-primary-rgb, 0,0,0), 0.39);
+  box-shadow: 0 4px 20px 0 rgba(var(--color-primary-rgb), 0.3);
 }
 
 .btn-premium:hover {
-  @apply scale-[1.02] shadow-xl brightness-110;
+  @apply scale-[1.02] shadow-2xl brightness-110 -translate-y-0.5;
 }
 
 /* Scrollbar Customization */
@@ -105,33 +121,17 @@ body {
   border-radius: 10px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-primary);
-  border-radius: 10px;
-}
-
-/* Keyframe Animations */
+/* Animations */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideInFromLeft { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-@keyframes slideInFromBottom { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes shimmer { 
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
 
 .animate-fadeIn { animation: fadeIn 0.5s ease-out forwards; }
-.animate-slideInLeft { animation: slideInFromLeft 0.5s ease-out forwards; }
-.animate-slideInBottom { animation: slideInFromBottom 0.5s ease-out forwards; }
 .animate-scaleIn { animation: scaleIn 0.3s ease-out forwards; }
+.animate-shimmer { animation: shimmer 2s infinite; }
 
-/* Dynamic Layout Coloring Hooks */
 .sidebar-bg { background-color: var(--theme-sidebarBg); }
 .nav-bg { background-color: var(--theme-navBg); }
-
-/* Theme Specific Rule: Cyber Arena Glowy Borders */
-[data-theme="cyber-arena"] .glass-panel {
-    border-color: rgba(0, 212, 255, 0.2);
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.05);
-}
-
-/* Theme Specific Rule: Minimal Glass Border Softness */
-[data-theme="minimal-glass"] .glass-panel {
-    border: 1px solid rgba(255, 255, 255, 0.4);
-}

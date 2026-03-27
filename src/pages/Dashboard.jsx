@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Swords, Gavel, Trophy, Play, BarChart, TrendingUp, Users, Activity, Zap, Globe } from 'lucide-react'
+import { Swords, Gavel, Trophy, Play, BarChart, TrendingUp, Users, Activity, Zap, Globe, Sparkles } from 'lucide-react'
+import GlobalSportsPulse from '../components/GlobalSportsPulse'
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts'
@@ -191,6 +192,8 @@ const Dashboard = () => {
 
                 {/* Sidebar Widget (Live Status) */}
                 <div className="space-y-6">
+                    <GlobalSportsPulse />
+                    
                     <div className="glass-panel p-6 border-t-2 border-t-[var(--color-secondary)]">
                         <h3 className="text-lg font-black font-rajdhani tracking-tight mb-6 flex items-center gap-2 text-[var(--color-text)]">
                             <Activity className="w-5 h-5 text-[var(--color-secondary)]" />
@@ -240,15 +243,16 @@ const Dashboard = () => {
             {/* Featured Links */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {[
-                    { title: 'LIVE TOURNAMENTS', desc: '4 active championships in progress.', icon: Swords, color: 'primary', action: 'ENTER ARENA' },
-                    { title: 'HOT AUCTIONS', desc: 'Pro Player Pool open for bidding.', icon: Gavel, color: 'secondary', action: 'ENTER BID ROOM' },
-                    { title: 'ELITE RANKINGS', desc: 'Check your standing globally.', icon: BarChart, color: 'success', action: 'VIEW LEADERS' }
+                    { title: 'LIVE TOURNAMENTS', desc: '4 active championships in progress.', icon: Swords, color: 'primary', action: 'ENTER ARENA', link: '/tournaments' },
+                    { title: 'GLOBAL SPORTS HUB', desc: 'Real-time world-wide sports updates.', icon: Globe, color: 'secondary', action: 'EXPLORE HUB', link: '/global-hub' },
+                    { title: 'ELITE RANKINGS', desc: 'Check your standing globally.', icon: BarChart, color: 'success', action: 'VIEW LEADERS', link: '/leaderboards' }
                 ].map((item, i) => (
                     <motion.div 
                         key={i}
                         whileHover={{ scale: 1.02 }}
                         className="glass-card p-8 group cursor-pointer border-t-2"
                         style={{ borderTopColor: `var(--color-${item.color})` }}
+                        onClick={() => window.location.href = item.link}
                     >
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6 shadow-lg transition-transform group-hover:rotate-12" style={{ backgroundColor: `var(--color-${item.color})`, shadowColor: `var(--color-${item.color}-rgb)` }}>
                             <item.icon className="w-6 h-6 text-white" />

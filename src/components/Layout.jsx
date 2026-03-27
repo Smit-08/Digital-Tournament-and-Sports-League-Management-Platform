@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Trophy, LayoutDashboard, User, LogOut, Swords, Calendar, BarChart, Settings, Gavel, Palette } from 'lucide-react'
+import { Trophy, LayoutDashboard, User, LogOut, Swords, Calendar, BarChart, Settings, Gavel, Palette, Globe, Activity } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import ThemeSelector from './ThemeSelector'
 
@@ -45,6 +45,8 @@ const Layout = ({ children }) => {
           <SidebarItem icon={Gavel} label="Live Auction" path="/auctions" active={location.pathname.startsWith('/auctions')} />
           <SidebarItem icon={Calendar} label="Schedules" path="/schedules" active={location.pathname === '/schedules'} />
           <SidebarItem icon={BarChart} label="Leaderboards" path="/leaderboards" active={location.pathname === '/leaderboards'} />
+          <SidebarItem icon={Globe} label="Global Hub" path="/global-hub" active={location.pathname === '/global-hub'} />
+          <SidebarItem icon={Activity} label="Live Center" path="/realtime" active={location.pathname === '/realtime'} />
           
           {(profile?.role === 'admin' || profile?.role === 'organizer') && (
             <>
